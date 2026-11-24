@@ -43,11 +43,10 @@
       q4: "",
       q5: "",
       items: {},
-      q6: "",
-      q7: {},
-      q8: { selected: [], ranks: [null, null, null], other: "" },
-      q9: {},
-      q10: ""
+      q6: {},
+      q7: { selected: [], ranks: [null, null, null], other: "" },
+      q8: {},
+      q9: ""
     };
   }
 
@@ -568,28 +567,27 @@
     var P = S.part5, a = state.answers;
     return h("section", { class: "card", id: "part5" },
       h("h2", { text: P.title }),
-      freeText(P.q6, "q6", function () { return a.q6; }, function (v) { a.q6 = v; }),
-      question(P.q7, "q7",
-        h("div", { class: "matrix" }, P.q7.rows.map(function (r) {
-          return h("div", { class: "matrix-row", id: "q7-" + r[0] },
+      question(P.q6, "q6",
+        h("div", { class: "matrix" }, P.q6.rows.map(function (r) {
+          return h("div", { class: "matrix-row", id: "q6-" + r[0] },
             h("div", { class: "row-name", text: r[1] }),
-            segmented("q7-" + r[0], P.q7.options,
-              function () { return a.q7[r[0]]; },
-              function (v) { a.q7[r[0]] = v; }));
+            segmented("q6-" + r[0], P.q6.options,
+              function () { return a.q6[r[0]]; },
+              function (v) { a.q6[r[0]] = v; }));
         }))),
-      question(P.q8, "q8",
-        itemList("q8", a.q8, P.q8.items, P.q8.otherNo, true),
+      question(P.q7, "q7",
+        itemList("q7", a.q7, P.q7.items, P.q7.otherNo, true),
         h("p", { class: "small muted", text: "가장 필요한 세 가지" }),
-        rankPicker("q8", a.q8, P.q8.items, P.q8.otherNo)),
-      question(P.q9, "q9",
-        h("div", { class: "matrix stack" }, P.q9.rows.map(function (r) {
-          return h("div", { class: "matrix-row", id: "q9-" + r.key },
+        rankPicker("q7", a.q7, P.q7.items, P.q7.otherNo)),
+      question(P.q8, "q8",
+        h("div", { class: "matrix stack" }, P.q8.rows.map(function (r) {
+          return h("div", { class: "matrix-row", id: "q8-" + r.key },
             h("div", { class: "row-name", text: r.label }),
-            segmented("q9-" + r.key, r.options,
-              function () { return a.q9[r.key]; },
-              function (v) { a.q9[r.key] = v; }));
+            segmented("q8-" + r.key, r.options,
+              function () { return a.q8[r.key]; },
+              function (v) { a.q8[r.key] = v; }));
         }))),
-      freeText(P.q10, "q10", function () { return a.q10; }, function (v) { a.q10 = v; }));
+      freeText(P.q9, "q9", function () { return a.q9; }, function (v) { a.q9 = v; }));
   }
 
   // ---------- 진행 상황과 빠진 항목 ----------
@@ -613,12 +611,12 @@
         out.push({ part: "part4", id: "item-" + it.no, label: "문항 " + it.no + " · 기대 행동", done: !!x.expected_ok });
       });
     });
-    S.part5.q7.rows.forEach(function (r) {
-      out.push({ part: "part5", id: "q7-" + r[0], label: "질문 7 · " + r[1], done: !!a.q7[r[0]] });
+    S.part5.q6.rows.forEach(function (r) {
+      out.push({ part: "part5", id: "q6-" + r[0], label: "질문 6 · " + r[1], done: !!a.q6[r[0]] });
     });
-    out.push({ part: "part5", id: "q8", label: "질문 8 · 순위 세 가지", done: rankCount(a.q8) === 3 });
-    S.part5.q9.rows.forEach(function (r) {
-      out.push({ part: "part5", id: "q9-" + r.key, label: "질문 9 · " + r.label.replace(/ \(.*$/, ""), done: !!a.q9[r.key] });
+    out.push({ part: "part5", id: "q7", label: "질문 7 · 순위 세 가지", done: rankCount(a.q7) === 3 });
+    S.part5.q8.rows.forEach(function (r) {
+      out.push({ part: "part5", id: "q8-" + r.key, label: "질문 8 · " + r.label.replace(/ \(.*$/, ""), done: !!a.q8[r.key] });
     });
     return out;
   }
@@ -700,11 +698,10 @@
       q4: trimmed(a.q4),
       q5: trimmed(a.q5),
       items: items,
-      q6: trimmed(a.q6),
-      q7: Object.assign({}, a.q7),
-      q8: { selected: sorted(a.q8.selected), ranks: rankMap(a.q8.ranks), other: trimmed(a.q8.other) },
-      q9: Object.assign({}, a.q9),
-      q10: trimmed(a.q10)
+      q6: Object.assign({}, a.q6),
+      q7: { selected: sorted(a.q7.selected), ranks: rankMap(a.q7.ranks), other: trimmed(a.q7.other) },
+      q8: Object.assign({}, a.q8),
+      q9: trimmed(a.q9)
     };
   }
 

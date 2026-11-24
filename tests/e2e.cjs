@@ -87,17 +87,16 @@ async function fillAll(page) {
   await page.fill("#item-16-comment", "DRT는 합승이 전제이므로 최대 우회 허용시간을 묻는 편이 낫다");
 
   // 5부
-  await page.fill("#q6-input", "요청한 날짜와 다른 날짜의 수요가 적용됨");
-  const q7 = { region: "must_ask", date: "must_ask", time_window: "assume_disclose", service_type: "must_ask", fleet_size: "assume_disclose", dispatch: "agent_decides", metric: "assume_disclose" };
-  for (const [k, v] of Object.entries(q7)) await page.locator(`input[name="q7-${k}"][value="${v}"]`).check({ force: true });
-  await page.locator("#q8-item-2").check();
-  await page.selectOption("#q8-rank-1", "2");
-  await page.selectOption("#q8-rank-2", "3");
-  await page.selectOption("#q8-rank-3", "5");
-  const q9 = { lookup_wait: "10s", run_wait: "10m", clarify_count: "1" };
-  for (const [k, v] of Object.entries(q9)) await page.locator(`input[name="q9-${k}"][value="${v}"]`).check({ force: true });
-  await page.fill("#q10-input", "수고하셨습니다");
-  return { q7, q9 };
+  const q6 = { region: "must_ask", date: "must_ask", time_window: "assume_disclose", service_type: "must_ask", fleet_size: "assume_disclose", dispatch: "agent_decides", metric: "assume_disclose" };
+  for (const [k, v] of Object.entries(q6)) await page.locator(`input[name="q6-${k}"][value="${v}"]`).check({ force: true });
+  await page.locator("#q7-item-2").check();
+  await page.selectOption("#q7-rank-1", "2");
+  await page.selectOption("#q7-rank-2", "3");
+  await page.selectOption("#q7-rank-3", "5");
+  const q8 = { lookup_wait: "10s", run_wait: "10m", clarify_count: "1" };
+  for (const [k, v] of Object.entries(q8)) await page.locator(`input[name="q8-${k}"][value="${v}"]`).check({ force: true });
+  await page.fill("#q9-input", "수고하셨습니다");
+  return { q6, q8 };
 }
 
 (async () => {
@@ -132,7 +131,7 @@ async function fillAll(page) {
     assert.strictEqual(await page.locator(".item.missing").count(), 18);
     await shot(page, "submit_missing", "#submit");
 
-    const { q7, q9 } = await fillAll(page);
+    const { q6, q8 } = await fillAll(page);
     assert.strictEqual(await page.locator(".item.missing").count(), 0, "답한 문항의 표시는 지워져야 한다");
     assert.strictEqual(await page.locator("#progress-text").innerText(), "53 / 53");
 
@@ -143,7 +142,7 @@ async function fillAll(page) {
     assert.strictEqual(await page.inputValue("#p1-field"), "교통 시뮬레이션 연구");
     assert.strictEqual(await page.inputValue("#q1-rank-1"), "5");
     assert.strictEqual(await page.locator('input[name="item-16-expected"][value="1"]').isChecked(), true);
-    assert.strictEqual(await page.locator('input[name="q9-run_wait"][value="10m"]').isChecked(), true);
+    assert.strictEqual(await page.locator('input[name="q8-run_wait"][value="10m"]').isChecked(), true);
     assert.strictEqual(await page.locator("#progress-text").innerText(), "53 / 53");
     assert.strictEqual(await page.locator("#cover-start").innerText(), "이어서 작성");
     if (SHOTS) {
@@ -190,11 +189,11 @@ async function fillAll(page) {
     assert.deepStrictEqual(a.items["1"], { realistic: 4, expected_ok: 3, comment: "" });
     assert.strictEqual(a.items["16"].expected_ok, 1);
     assert.ok(a.items["16"].comment.startsWith("DRT는"));
-    assert.deepStrictEqual(a.q7, q7);
-    assert.deepStrictEqual(a.q8, { selected: [2, 3, 5], ranks: { 1: 2, 2: 3, 3: 5 }, other: "" });
+    assert.deepStrictEqual(a.q6, q6);
+    assert.deepStrictEqual(a.q7, { selected: [2, 3, 5], ranks: { 1: 2, 2: 3, 3: 5 }, other: "" });
     assert.strictEqual(a.q4, "민감도 분석 설계");
-    assert.deepStrictEqual(a.q9, q9);
-    assert.strictEqual(a.q10, "수고하셨습니다");
+    assert.deepStrictEqual(a.q8, q8);
+    assert.strictEqual(a.q9, "수고하셨습니다");
 
     // 수정 후 다시 제출하면 같은 응답자 번호로 revision 2
     await page.click("text=응답 수정하기");

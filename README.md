@@ -60,15 +60,15 @@ from survey_item_ratings where comment is not null order by item_no;
 | 키 | 내용 |
 | --- | --- |
 | `p1` | 1부. `field`, `years`, `sim_experience`(none / use_results / run_directly), `tools`, `ai_experience`(none / sometimes / often) |
-| `q1`, `q8` | `selected`(고른 항목 번호), `ranks`(`{"1": 항목 번호, "2": …, "3": …}`), `other`(기타 내용) |
+| `q1`, `q7` | `selected`(고른 항목 번호), `ranks`(`{"1": 항목 번호, "2": …, "3": …}`), `other`(기타 내용) |
 | `q2` | `ranks`, `other` |
 | `q3` | 시뮬레이션으로 답을 얻고 싶은 운영 질문. `selected`(고른 질문 번호 1~13, `survey-content.js`에 적힌 순서), `other` |
 | `items` | 4부. 문항 번호마다 `realistic`, `expected_ok`(1~4 또는 null. 1 전혀 아니다, 2 아니다, 3 그렇다, 4 매우 그렇다), `comment` |
-| `q7` | 조건마다 must_ask / assume_disclose / agent_decides. 키는 region, date, time_window, service_type, fleet_size, dispatch, metric |
-| `q9` | `lookup_wait`(10s / 1m / 5m / longer), `run_wait`(1m / 10m / 1h / longer), `clarify_count`(0 / 1 / 2_3 / any) |
-| `q4`, `q5`, `q6`, `q10` | 자유 서술 |
+| `q6` | 조건마다 must_ask / assume_disclose / agent_decides. 키는 region, date, time_window, service_type, fleet_size, dispatch, metric |
+| `q8` | `lookup_wait`(10s / 1m / 5m / longer), `run_wait`(1m / 10m / 1h / longer), `clarify_count`(0 / 1 / 2_3 / any) |
+| `q4`, `q5`, `q9` | 자유 서술 |
 
-키의 번호는 화면의 질문 번호와 같다. 기타 항목의 번호는 질문 1·2에서 9, 질문 8에서 6이다.
+키의 번호는 화면의 질문 번호와 같다. 기타 항목의 번호는 질문 1·2에서 9, 질문 7에서 6이다.
 
 질문 3의 응답 수는 다음처럼 센다.
 
