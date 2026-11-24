@@ -8,8 +8,8 @@
  * 두 값이 비어 있으면 미리보기 모드로 동작하며, 제출 시 응답을 파일로 내려받는다.
  */
 window.SURVEY_CONFIG = {
-  supabaseUrl: "",   // 예: "https://abcdefghijklmnop.supabase.co"
-  supabaseKey: "",   // 예: "sb_publishable_..." 또는 "eyJhbGciOi..." (anon)
+  supabaseUrl: "https://zpyrejbjmjxqzkugtbzg.supabase.co",
+  supabaseKey: "sb_publishable_uRs9q3ip1A5Y5u4s3XQOww_C-egdSS0",
   table: "survey_responses",
   contact: "",       // 제출 오류 시 안내할 연락처. 예: "name@example.ac.kr"
   previewOnly: false // true면 화면만 보여 주고 제출해도 저장하거나 내려받지 않는다
