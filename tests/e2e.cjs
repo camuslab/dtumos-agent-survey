@@ -115,8 +115,14 @@ async function fillAll(page) {
 
     // 소개의 시뮬레이션 화면이 재생되고 시각이 표시된다
     await page.locator("#intro .sim-screen").scrollIntoViewIfNeeded();
-    await page.waitForSelector("#intro canvas.flow.on");
     await page.waitForFunction(() => /^18:[0-3]\d$/.test(document.querySelector(".sim-clock-time").textContent));
+    // 지도 재생으로 바뀌고, 멈춤과 시각 이동이 동작한다
+    await page.waitForSelector("#intro .sim-screen.has-map canvas.maplibregl-canvas", { timeout: 20000 });
+    await page.click("#intro .sim-play");
+    assert.strictEqual(await page.locator("#intro .sim-play").innerText(), "재생");
+    await page.locator("#intro .sim-slider").fill("20");
+    await page.waitForFunction(() => document.querySelector(".sim-clock-time").textContent === "18:25");
+    await page.click("#intro .sim-play");
     assert.strictEqual(await page.locator("#intro .toolcall").count(), 4);
 
     // 아무것도 답하지 않고 제출하면 빠진 항목을 안내하고 보내지 않는다
@@ -213,7 +219,12 @@ async function fillAll(page) {
     const errors = [];
     const external = [];
     page.on("pageerror", (e) => errors.push(e.message));
-    page.on("request", (r) => { if (!r.url().startsWith(new URL(URL_BASE).origin) && !r.url().startsWith("blob:")) external.push(r.url()); });
+    // 지도 바탕 타일(받기만 하는 요청)은 빼고, 그 밖의 외부 요청을 모은다
+    const isTile = (u) => /^https:\/\/[a-d]\.basemaps\.cartocdn\.com\//.test(u);
+    page.on("request", (r) => {
+      const u = r.url();
+      if (!u.startsWith(new URL(URL_BASE).origin) && !u.startsWith("blob:") && !isTile(u)) external.push(u);
+    });
     await page.goto(URL_BASE);
     await page.waitForSelector("#part1");
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);

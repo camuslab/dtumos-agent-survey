@@ -11,6 +11,7 @@
 | `docs/app.js` | 화면 구성, 임시 저장, 제출 |
 | `docs/config.js` | Supabase 주소와 공개용 키 |
 | `docs/styles.css`, `docs/flow.js`, `docs/assets/` | 모양, 표지 배경 |
+| `docs/sim-map.js`, `docs/vendor/` | 소개의 시뮬레이션 화면(지도 위 재생)과 지도 라이브러리 |
 | `supabase/schema.sql` | 테이블, 권한, 분석용 보기 |
 | `tests/e2e.cjs`, `tests/schema_check.sh` | 화면 동작과 권한 확인 |
 
@@ -93,6 +94,12 @@ bash tests/schema_check.sh  # PostgreSQL 서버 필요. 임시 DB에서 권한�
 ```
 
 실제 Supabase 프로젝트에 대한 제출은 위 "Supabase 연결" 3번에서 직접 확인한다.
+
+## 시뮬레이션 화면
+
+소개의 시뮬레이션 화면은 DTUMOS의 Simulation 탭과 같은 방식으로, 지도 위에 deck.gl로 차량의 이동을 재생한다. 자료는 `docs/assets/flow.json` 하나다. 서울에서 택시 1,000대와 승객 10,000명으로 18~19시를 실행한 결과에서 도심 구간의 30분을 추린 것이다. 다른 실행으로 바꾸려면 `camuslab/dtumos-lecture`의 `frontend/scripts/landing_flow.py`로 그 실행의 결과 폴더에서 같은 형식의 파일을 만들어 넣고, 지역이 다르면 `docs/sim-map.js`의 좌표 상자를 그 스크립트의 값과 맞춘다.
+
+지도 바탕은 CARTO의 타일을 쓴다(토큰 없음, 출처 표기 포함). 타일을 받지 못하면 간선도로 윤곽 위에 재생하고, 지도 라이브러리나 WebGL을 쓸 수 없으면 `flow.js`의 canvas 재생이 그대로 보인다. `docs/vendor/`에는 MapLibre GL JS 4.7.1(BSD-3-Clause)과 deck.gl 9.0.38(MIT)의 배포 파일과 라이선스가 들어 있다.
 
 ## 표지 출처
 

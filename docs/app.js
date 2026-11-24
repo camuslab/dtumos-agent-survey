@@ -296,6 +296,44 @@
     return question(q, id, textInput(get, set, { multiline: true, id: id + "-input", ariaLabel: q.label }));
   }
 
+  // ---------- 지도 재생에 쓰는 라이브러리 ----------
+
+  var simHandle = null;
+  var mapLibraries = null;
+
+  function loadScript(src) {
+    return new Promise(function (resolve, reject) {
+      var el = document.createElement("script");
+      el.src = src;
+      el.onload = resolve;
+      el.onerror = function () { reject(new Error(src)); };
+      document.head.appendChild(el);
+    });
+  }
+
+  /* 설문 본문과 상관없는 2MB가량의 파일이라, 시뮬레이션 화면이 가까워졌을 때 한 번만 불러온다. */
+  function loadMapLibraries() {
+    if (!mapLibraries) {
+      var css = document.createElement("link");
+      css.rel = "stylesheet";
+      css.href = "vendor/maplibre-gl.css";
+      document.head.appendChild(css);
+      mapLibraries = loadScript("vendor/maplibre-gl.js")
+        .then(function () { return loadScript("vendor/deck.gl.min.js"); })
+        .then(function () { return loadScript("sim-map.js"); });
+    }
+    return mapLibraries;
+  }
+
+  /* el이 화면 가까이에 오면 fn을 한 번 부른다. */
+  function whenNear(el, fn) {
+    if (!window.IntersectionObserver) { fn(); return; }
+    var io = new IntersectionObserver(function (entries) {
+      if (entries.some(function (e) { return e.isIntersecting; })) { io.disconnect(); fn(); }
+    }, { rootMargin: "800px 0px" });
+    io.observe(el);
+  }
+
   // ---------- 각 부분 ----------
 
   function renderHero() {
@@ -315,28 +353,67 @@
   function renderIntro() {
     var I = S.intro;
 
-    // 시뮬레이션 화면: 실제 실행을 재생하는 canvas 위에 시각과 범례를 얹는다
+    // 시뮬레이션 화면: 지도 위에 실제 실행을 재생한다. 지도를 쓸 수 없으면 canvas 재생을 그대로 둔다.
     var canvas = h("canvas", { class: "flow", "aria-hidden": "true" });
+    var mapBox = h("div", { class: "sim-map", hidden: true });
     var clock = h("span", { class: "sim-clock-time", text: "--:--" });
     var lastClock = "";
-    var screen = h("figure", { class: "sim" },
-      h("div", { class: "sim-screen" },
-        canvas,
-        h("div", { class: "sim-badge", text: I.screen.badge }),
-        h("div", { class: "sim-clock" }, h("span", { class: "sim-clock-label", text: I.screen.clockLabel }), clock),
-        h("ul", { class: "sim-legend" }, I.screen.legend.map(function (l) {
-          return h("li", null, h("i", { class: "sim-key " + l[0] }), l[1]);
-        }))),
-      h("figcaption", { text: I.screen.caption }));
-    if (window.startFlow) {
-      window.startFlow(canvas, "assets/flow.json", {
-        onTime: function (minute) {
-          var m = Math.floor(minute) % 1440;
-          var text = ("0" + Math.floor(m / 60)).slice(-2) + ":" + ("0" + (m % 60)).slice(-2);
-          if (text !== lastClock) { lastClock = text; clock.textContent = text; }
-        }
-      });
+    function showTime(minute) {
+      var m = Math.floor(minute) % 1440;
+      var text = ("0" + Math.floor(m / 60)).slice(-2) + ":" + ("0" + (m % 60)).slice(-2);
+      if (text !== lastClock) { lastClock = text; clock.textContent = text; }
     }
+
+    var playButton = h("button", { type: "button", class: "sim-play", "aria-label": "재생 멈춤", text: "멈춤" });
+    var slider = h("input", { type: "range", class: "sim-slider", min: "0", max: "30", step: "0.1", value: "0", "aria-label": "시뮬레이션 시각" });
+    var speeds = h("div", { class: "seg sim-speed", role: "radiogroup", "aria-label": "재생 속도" },
+      [1, 2, 4].map(function (v) {
+        var input = h("input", { type: "radio", name: "sim-speed", value: String(v) });
+        input.checked = v === 1;
+        input.addEventListener("change", function () { if (simHandle) simHandle.setSpeed(v); });
+        return h("label", null, input, h("span", { text: v + "배속" }));
+      }));
+    var controls = h("div", { class: "sim-controls", hidden: true }, playButton, slider, speeds);
+    var sliding = false;
+    playButton.addEventListener("click", function () { if (simHandle) simHandle.toggle(); });
+    slider.addEventListener("pointerdown", function () { sliding = true; });
+    slider.addEventListener("pointerup", function () { sliding = false; });
+    slider.addEventListener("input", function () { if (simHandle) simHandle.seek(Number(slider.value)); });
+
+    var screenBox = h("div", { class: "sim-screen" },
+      canvas,
+      mapBox,
+      h("div", { class: "sim-badge", text: I.screen.badge }),
+      h("div", { class: "sim-clock" }, h("span", { class: "sim-clock-label", text: I.screen.clockLabel }), clock),
+      h("ul", { class: "sim-legend" }, I.screen.legend.map(function (l) {
+        return h("li", null, h("i", { class: "sim-key " + l[0] }), l[1]);
+      })));
+    var screen = h("figure", { class: "sim" }, screenBox, controls, h("figcaption", { text: I.screen.caption }));
+
+    if (window.startFlow) window.startFlow(canvas, "assets/flow.json", { onTime: showTime });
+    if (simHandle) { simHandle.destroy(); simHandle = null; }
+    whenNear(screenBox, function () {
+      loadMapLibraries().then(function () {
+        mapBox.hidden = false; // 지도는 크기가 있는 상자에 만들어야 한다
+        return window.startSimMap(mapBox, "assets/flow.json", {
+          onTime: showTime,
+          onState: function (st) {
+            playButton.textContent = st.playing ? "멈춤" : "재생";
+            playButton.setAttribute("aria-label", st.playing ? "재생 멈춤" : "재생");
+            slider.max = String(st.length);
+            if (!sliding) slider.value = String(st.position);
+          }
+        });
+      }).then(function (handle) {
+        if (!screenBox.isConnected) { handle.destroy(); return; }
+        simHandle = handle;
+        canvas.hidden = true; // 화면 밖으로 나간 canvas는 flow.js가 그리지 않는다
+        controls.hidden = false;
+        screenBox.classList.add("has-map");
+      }).catch(function () {
+        mapBox.hidden = true; // canvas 재생을 그대로 둔다
+      });
+    });
 
     // 사용자 ↔ Agent ↔ DTUMOS
     var link = h("div", { class: "link" });
