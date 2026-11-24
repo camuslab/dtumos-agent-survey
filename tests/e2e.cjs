@@ -171,7 +171,7 @@ async function fillAll(page) {
     assert.strictEqual(p.method, "POST");
     assert.strictEqual(p.url, FAKE + "/rest/v1/survey_responses");
     assert.strictEqual(p.headers["apikey"], KEY);
-    assert.strictEqual(p.headers["authorization"], "Bearer " + KEY);
+    assert.strictEqual(p.headers["authorization"], undefined);
     assert.strictEqual(p.headers["prefer"], "return=minimal");
     const row = p.body;
     assert.deepStrictEqual(Object.keys(row).sort(), ["answers", "invite_code", "respondent_id", "revision", "started_at", "submitted_at", "survey_id", "survey_version"]);
@@ -218,6 +218,7 @@ async function fillAll(page) {
     const page = await context.newPage();
     const errors = [];
     const external = [];
+    await page.route("**/config.js", (route) => route.fulfill({ contentType: "text/javascript", body: "window.SURVEY_CONFIG = {};" }));
     page.on("pageerror", (e) => errors.push(e.message));
     // 지도 바탕 타일(받기만 하는 요청)은 빼고, 그 밖의 외부 요청을 모은다
     const isTile = (u) => /^https:\/\/[a-d]\.basemaps\.cartocdn\.com\//.test(u);

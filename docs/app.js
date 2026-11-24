@@ -727,7 +727,6 @@
       method: "POST",
       headers: {
         "apikey": CONFIG.supabaseKey,
-        "Authorization": "Bearer " + CONFIG.supabaseKey,
         "Content-Type": "application/json",
         "Prefer": "return=minimal"
       },
